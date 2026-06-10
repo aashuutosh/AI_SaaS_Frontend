@@ -13,12 +13,11 @@ const apiClient = axios.create({
 export const backendAPI = {
   // --- AI ENDPOINTS (From your ai.py router) ---
   
-  chat: async (data) => {
-    // Expected data format: { prompt: "Your text here" }
-    const response = await apiClient.post('/chat', data);
+chat: async (data) => {
+    // Just update this string to match the dashboard perfectly!
+    const response = await apiClient.post('/api/ai/chat', data); 
     return response.data;
   },
-  
   summarize: async (data) => {
     const response = await apiClient.post('/summarize', data);
     return response.data;
