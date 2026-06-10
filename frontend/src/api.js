@@ -11,32 +11,32 @@ const apiClient = axios.create({
 });
 
 export const backendAPI = {
-  // --- AI ENDPOINTS (From your ai.py router) ---
+  // --- AI ENDPOINTS ---
   
-chat: async (data) => {
-    // Just update this string to match the dashboard perfectly!
-    const response = await apiClient.post('/api/ai/chat', data); 
+  chat: async (data) => {
+    // UPDATED: Now hitting the exact path from your FastAPI docs!
+    const response = await apiClient.post('/v1/ai/chat/), data);
     return response.data;
   },
+  
+  // (You will need to check your /docs for the exact paths of these other endpoints later!)
   summarize: async (data) => {
-    const response = await apiClient.post('/summarize', data);
+    const response = await apiClient.post('/v1/ai/summarize', data);
     return response.data;
   },
   
   generateImage: async (data) => {
-    const response = await apiClient.post('/image', data);
+    const response = await apiClient.post('/v1/ai/image', data);
     return response.data;
   },
 
   longForm: async (data) => {
-    const response = await apiClient.post('/long-form', data);
+    const response = await apiClient.post('/v1/ai/long-form', data);
     return response.data;
   },
 
-  // --- SYSTEM ENDPOINTS (From your main.py) ---
-  
+  // --- SYSTEM ENDPOINTS ---
   checkHealth: async () => {
-    // Notice this one has /v1/ because you hardcoded it in main.py
     const response = await apiClient.get('/v1/health');
     return response.data;
   }
