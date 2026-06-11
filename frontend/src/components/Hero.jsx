@@ -1,8 +1,37 @@
-// frontend/src/components/Hero.jsx
-import React from "react";
+import React, { useState } from "react";
 import { CoinIcon, SendIcon } from "./Icons";
+import { backendAPI } from "../api"; 
 
 export default function Hero({ r }) {
+  const [prompt, setPrompt] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState([
+    { role: "ai", content: "Hello! I'm ready to help. What would you like to work on today?" }
+  ]);
+  const [credits, setCredits] = useState(11843); 
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault(); 
+    if (!prompt.trim() || isLoading) return;
+
+    const newMessages = [...messages, { role: "user", content: prompt }];
+    setMessages(newMessages);
+    setPrompt("");
+    setIsLoading(true);
+
+    try {
+      const response = await backendAPI.chat({ prompt: prompt });
+      
+      setMessages((prev) => [...prev, { role: "ai", content: response.output || JSON.stringify(response) }]);
+      setCredits((prev) => prev - 1); 
+    } catch (error) {
+      console.error("Backend Error:", error);
+      setMessages((prev) => [...prev, { role: "ai", content: "Sorry, I am having trouble connecting to the server." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <section className="hero">
       <div className="hero-bg" />
@@ -46,6 +75,7 @@ export default function Hero({ r }) {
           Cancel anytime
         </div>
       </div>
+      
       <div className="hero-demo">
         <div className="demo-card">
           <div className="demo-header">
@@ -68,45 +98,46 @@ export default function Hero({ r }) {
                   <div className="dcb-sub">Resets 1 Jul</div>
                 </div>
               </div>
-              <div className="dcb-val">11,843</div>
+              <div className="dcb-val">{credits.toLocaleString()}</div>
             </div>
+            
             <div className="demo-messages">
-              <div className="msg">
-                <div className="msg-avatar msg-avatar-ai" style={{ fontSize: 13 }}>AI</div>
-                <div className="msg-bubble msg-bubble-ai">
-                  Hello! I'm ready to help. What would you like to work on today?
+              {messages.map((msg, index) => (
+                <div key={index} className={`msg ${msg.role === 'user' ? 'msg-user' : ''}`}>
+                  <div className={`msg-avatar msg-avatar-${msg.role}`} style={msg.role === 'ai' ? { fontSize: 13 } : {}}>
+                    {msg.role === 'ai' ? 'AI' : 'You'}
+                  </div>
+                  <div className={`msg-bubble msg-bubble-${msg.role}`}>
+                    {msg.content}
+                  </div>
                 </div>
-              </div>
-              <div className="msg msg-user">
-                <div className="msg-avatar msg-avatar-user">You</div>
-                <div className="msg-bubble msg-bubble-user">
-                  Summarise our Q3 report in 3 bullet points for the board.
+              ))}
+
+              {isLoading && (
+                <div className="msg">
+                  <div className="msg-avatar msg-avatar-ai" style={{ fontSize: 13 }}>AI</div>
+                  <div className="msg-bubble msg-bubble-ai" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" />
+                  </div>
                 </div>
-              </div>
-              <div className="msg">
-                <div className="msg-avatar msg-avatar-ai" style={{ fontSize: 13 }}>AI</div>
-                <div className="msg-bubble msg-bubble-ai">
-                  <strong style={{ color: 'var(--green-700)' }}>Q3 Board Summary</strong><br />
-                  • Revenue up 22% YoY, led by Enterprise<br />
-                  • APAC overtook EMEA for the first time<br />
-                  • Churn fell to 3.1% after onboarding changes
-                </div>
-              </div>
-              <div className="msg-cost">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green-400)" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 8v1m0 6v1" /></svg>
-                1 credit used · 11,842 remaining
-              </div>
-              <div className="msg">
-                <div className="msg-avatar msg-avatar-ai" style={{ fontSize: 13 }}>AI</div>
-                <div className="msg-bubble msg-bubble-ai" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" />
-                </div>
-              </div>
+              )}
             </div>
-            <div className="demo-input-row">
-              <span className="demo-input-text">Ask anything…</span>
-              <div className="demo-send"><SendIcon /></div>
-            </div>
+            
+            <form onSubmit={handleSendMessage} className="demo-input-row" style={{ display: 'flex', width: '100%' }}>
+              <input 
+                type="text"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                disabled={isLoading}
+                placeholder="Ask anything…"
+                className="demo-input-text"
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'inherit' }}
+              />
+              <button type="submit" disabled={isLoading} className="demo-send" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                <SendIcon />
+              </button>
+            </form>
+
           </div>
         </div>
       </div>
